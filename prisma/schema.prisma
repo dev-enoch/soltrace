@@ -1,0 +1,145 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum IngestState {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum RuleKind {
+  SCORE_DROP
+  CONCENTRATION
+  NEW_LARGE_TOKEN
+  VALUE_MOVE
+  LIQUIDITY
+}
+
+enum Channel {
+  EMAIL
+  TELEGRAM
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+}
+
+model Wallet {
+  id          String      @id @default(cuid())
+  address     String      @unique
+  firstSeen   DateTime    @default(now())
+  lastIngest  DateTime?
+  ingestState IngestState @default(PENDING)
+  ownerId     String?
+  isPublic    Boolean     @default(false)
+  user        User?       @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  snapshots   Snapshot[]
+
+  @@index([address])
+}
+
+model Snapshot {
+  id        String    @id @default(cuid())
+  walletId  String
+  takenAt   DateTime  @default(now())
+  slot      BigInt
+  totalUsd  Decimal   @db.Decimal(20, 2)
+  pricedPct Float
+  truncated Boolean   @default(false)
+  wallet    Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  holdings  Holding[]
+  score     Score?
+
+  @@index([walletId, takenAt])
+}
+
+model Holding {
+  id           String   @id @default(cuid())
+  snapshotId   String
+  mint         String
+  symbol       String?
+  name         String?
+  logoUrl      String?
+  amount       Decimal  @db.Decimal(30, 9)
+  priceUsd     Decimal? @db.Decimal(20, 8)
+  valueUsd     Decimal? @db.Decimal(20, 2)
+  decimals     Int
+  isDust       Boolean  @default(false)
+  liquidityUsd Decimal? @db.Decimal(20, 2)
+  snapshot     Snapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
+  @@index([mint])
+}
+
+model Score {
+  id            String   @id @default(cuid())
+  snapshotId    String   @unique
+  scoreVersion  String
+  total         Int
+  band          String
+  concentration Int
+  liquidity     Int
+  composition   Int
+  quality       Int
+  stability     Int
+  drivers       Json
+  computedAt    DateTime @default(now())
+  snapshot      Snapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+}
+
+model PriceHistory {
+  id         String   @id @default(cuid())
+  mint       String
+  priceUsd   Decimal  @db.Decimal(20, 8)
+  recordedAt DateTime @default(now())
+
+  @@index([mint, recordedAt])
+}
+
+model AlertRule {
+  id        String       @id @default(cuid())
+  userId    String
+  walletId  String
+  kind      RuleKind
+  threshold Float
+  channel   Channel
+  active    Boolean      @default(true)
+  lastFired DateTime?
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events    AlertEvent[]
+
+  @@index([userId, active])
+}
+
+model AlertEvent {
+  id        String    @id @default(cuid())
+  ruleId    String
+  firedAt   DateTime  @default(now())
+  dedupeKey String    @unique
+  payload   Json
+  delivered Boolean   @default(false)
+  rule      AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([delivered])
+}
+
+model User {
+  id         String      @id @default(cuid())
+  email      String?     @unique
+  telegram   String?
+  plan       Plan        @default(FREE)
+  createdAt  DateTime    @default(now())
+  wallets    Wallet[]
+  alertRules AlertRule[]
+}
+
