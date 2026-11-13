@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,30 +16,42 @@ export default function About() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-transparent text-white dark:text-white">
+        <Button
+          size="sm"
+          className="bg-transparent hover:bg-purple-800/50 text-white text-xs border border-purple-700/40"
+        >
           About
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-purple-800 p-6 rounded shadow-md">
+      <DialogContent className="sm:max-w-md bg-purple-900 border border-purple-700 text-white p-6 rounded-xl shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-purple-100">About Soltrace</DialogTitle>
-          <DialogDescription className="text-purple-200">
-            Soltrace a new way of checking your wallet!
+          <DialogTitle className="text-purple-100 text-lg font-bold">
+            About Soltrace
+          </DialogTitle>
+          <DialogDescription className="text-purple-300 text-sm">
+            Portfolio risk terminal for Solana wallets.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2">
-          <div className="container mx-auto text-center py-12">
-            <p className="text-purple-200">
-              SOLTRACE is a simple, convenient, and user-friendly app that helps
-              users analyze their SOL wallets and provide feedback on their
-              holdings. We strive to make wallet analysis as easy as possible,
-              making it accessible to everyone.
-            </p>
+
+        <div className="space-y-3 py-2 text-sm text-purple-200 leading-relaxed">
+          <p>
+            <strong className="text-white">Soltrace</strong> is an independent portfolio analysis tool designed to give Solana holders a clear, honest read on their token holdings and exposure.
+          </p>
+          <p>
+            Unlike explorers that merely dump raw token lists or apps that require wallet connection approvals, Soltrace is strictly <strong className="text-purple-100">read-only</strong>. No signatures, no seed phrases, and no third-party tracking.
+          </p>
+          <div className="p-3 bg-purple-950/70 border border-purple-800 rounded-lg text-xs text-purple-300">
+            <span className="font-semibold text-purple-200 block mb-1">Roadmap Status</span>
+            Currently running <span className="text-emerald-400 font-mono">Stage 1: Stabilise</span>. Upcoming stages introduce Helius DAS ingestion, Jupiter Price batching, and the versioned 0-100 deterministic risk engine.
           </div>
         </div>
-        <DialogFooter className="sm:justify-start">
+
+        <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
-            <Button type="button" className="text-white bg-purple-600">
+            <Button
+              type="button"
+              className="bg-purple-600 hover:bg-purple-500 text-white text-xs"
+            >
               Close
             </Button>
           </DialogClose>

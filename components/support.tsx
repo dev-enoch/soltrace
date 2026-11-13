@@ -1,4 +1,6 @@
 "use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,40 +12,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SyntheticEvent, useRef, useState } from "react";
-import * as code from "@code-wallet/elements";
+
+const DONATION_ADDRESS = "3PNbsyVavwf17Jr36yfapzNeoLwzjY6eKmoMvdy87FWK";
 
 export default function Support() {
-  const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("ngn");
-  const el = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
-  const handleClick = async (e: SyntheticEvent) => {
-    e.preventDefault();
-    const value = parseInt(amount, 10);
-    if (!value || value < 0) {
-      return;
-    }
-    if (currency === "ngn") {
-      const { button } = await code.elements.create("button", {
-        currency: "ngn",
-        amount: value,
-        destination: "3PNbsyVavwf17Jr36yfapzNeoLwzjY6eKmoMvdy87FWK",
-      });
-
-      if (button) {
-        button.mount(el.current!);
-      }
-    } else {
-      const { button } = await code.elements.create("button", {
-        currency: "usd",
-        amount: value,
-        destination: "3PNbsyVavwf17Jr36yfapzNeoLwzjY6eKmoMvdy87FWK",
-      });
-
-      if (button) {
-        button.mount(el.current!);
-      }
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(DONATION_ADDRESS);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Clipboard copy failed", err);
     }
   };
 
@@ -52,60 +33,57 @@ export default function Support() {
       <DialogTrigger asChild>
         <Button
           size="sm"
-          className="bg-transparent text-white dark:text-white"
+          className="bg-purple-700/60 hover:bg-purple-700 text-white text-xs border border-purple-500/40"
         >
           Support
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-purple-800 p-6 rounded shadow-md">
+      <DialogContent className="sm:max-w-md bg-purple-900 border border-purple-700 text-white p-6 rounded-xl shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-purple-100">Support Developer</DialogTitle>
-          <DialogDescription className="text-purple-200">
-            If you have any questions or need assistance, please dont hesitate
-            to reach out to @earhyel on X (twitter).
+          <DialogTitle className="text-purple-100 text-lg font-bold">
+            Support Soltrace Development
+          </DialogTitle>
+          <DialogDescription className="text-purple-300 text-sm">
+            Soltrace is independently developed by Enoch Philip Dibal. If you appreciate the rebuild, you can tip in SOL to the treasury address below.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2 flex flex-col items-center">
-          <p className="text-purple-200">Suprise your developer with something 🙊</p>
 
-          <form
-            method="post"
-            className="w-[90%] mx-auto mt-10 space-y-2"
-            onSubmit={handleClick}
-          >
-            <div className="flex rounded-md overflow-hidden">
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="px-2 text-sm transition-colors duration-300  text-white bg-purple-500 outline-none"
-              >
-                <option value="ngn" className="bg-purple-500 text-white rounded-none">NGN</option>
-                <option value="usd" className="bg-purple-500 text-white rounded-none">USD</option>
-              </select>
-              <input
-                type="number"
-                placeholder={
-                  currency === "ngn"
-                    ? "Max amount is 2000"
-                    : "Min amount is 0.5"
-                }
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="flex-1 p-2 border bg-white text-purple-500"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-purple-600 text-white px-4 py-2 rounded"
+        <div className="space-y-4 my-2">
+          <div className="p-3 bg-purple-950/80 rounded-lg border border-purple-800">
+            <span className="text-xs uppercase tracking-wider text-purple-400 block mb-1">
+              Solana Tip Address
+            </span>
+            <code className="text-xs font-mono break-all text-purple-200 block selection:bg-purple-600">
+              {DONATION_ADDRESS}
+            </code>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              onClick={handleCopy}
+              className="flex-1 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold py-2"
             >
-              Suprise
-            </button>
-          </form>
-          <div ref={el} />
+              {copied ? "Copied Address!" : "Copy Solana Address"}
+            </Button>
+            <a
+              href="https://x.com/earhyel"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-md bg-purple-800/80 hover:bg-purple-800 text-purple-200 hover:text-white text-xs font-medium border border-purple-700/60 flex items-center justify-center transition-colors"
+            >
+              @earhyel on X
+            </a>
+          </div>
         </div>
-        <DialogFooter className="sm:justify-start">
+
+        <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
-            <Button type="button" className="text-white bg-purple-600">
+            <Button
+              type="button"
+              variant="secondary"
+              className="bg-purple-950 text-purple-300 hover:text-white text-xs border border-purple-800"
+            >
               Close
             </Button>
           </DialogClose>

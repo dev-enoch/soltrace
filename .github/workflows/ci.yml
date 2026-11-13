@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "recovery/**", "feat/**", "fix/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Lint, Typecheck, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies (strict lockfile)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
+
+  bundle-guard:
+    name: Client Bundle Secret Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies & build
+        run: npm ci && npm run build
+
+      - name: Verify zero secrets in static client chunks
+        run: |
+          if grep -rEl 'AIza[0-9A-Za-z_-]{35}|NEXT_PUBLIC_[A-Z_]*KEY' .next/static || \
+             grep -rEl 'quicknode\.pro|generativelanguage' .next/static; then
+            echo "::error::Secret material or unauthenticated vendor endpoint found in client bundle!"
+            exit 1
+          fi
+          echo "Client bundle guard passed: zero leaked credentials."
+
