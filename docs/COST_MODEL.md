@@ -38,3 +38,4 @@
 - **TTL**: 1,800 seconds (30 minutes).
 - **Force Refresh**: Admin/Pro bypass parameter `?fresh=true` or webhook trigger.
 - **Marginal Cost**: \$0.00 for cached reads.
+

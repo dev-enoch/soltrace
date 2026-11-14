@@ -59,3 +59,5 @@ export function isValidAddress(address: unknown): boolean {
   const decoded = decodeBase58(trimmed);
   return decoded !== null && decoded.length === 32;
 }
+
+export const isValidSolanaAddress = isValidAddress;
