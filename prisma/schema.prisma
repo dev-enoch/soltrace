@@ -142,4 +142,3 @@ model User {
   wallets    Wallet[]
   alertRules AlertRule[]
 }
-
